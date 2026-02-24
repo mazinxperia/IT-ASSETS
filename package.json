@@ -1,0 +1,26 @@
+{
+  "name": "assetflow",
+  "version": "1.0.0",
+  "description": "IT Asset Management System",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"cd backend && uvicorn server:app --reload --port 8001\" \"cd frontend && yarn start\"",
+    "build": "cd frontend && yarn build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "keywords": [
+    "asset-management",
+    "it-assets",
+    "inventory",
+    "react",
+    "fastapi",
+    "mongodb"
+  ],
+  "author": "",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

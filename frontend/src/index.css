@@ -1,0 +1,272 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 248 250 252;
+    --foreground: 15 23 42;
+    --card: 255 255 255;
+    --card-foreground: 15 23 42;
+    --popover: 255 255 255;
+    --popover-foreground: 15 23 42;
+    --primary: 239 68 68;
+    --primary-foreground: 255 255 255;
+    --secondary: 241 245 249;
+    --secondary-foreground: 15 23 42;
+    --muted: 241 245 249;
+    --muted-foreground: 100 116 139;
+    --accent: 244 244 245;
+    --accent-foreground: 15 23 42;
+    --destructive: 239 68 68;
+    --destructive-foreground: 255 255 255;
+    --border: 226 232 240;
+    --input: 226 232 240;
+    --ring: 79 70 229;
+    --radius: 0.75rem;
+    --chart-1: 79 70 229;
+    --chart-2: 16 185 129;
+    --chart-3: 245 158 11;
+    --chart-4: 239 68 68;
+    --chart-5: 168 85 247;
+  }
+
+  .dark {
+    --background: 11 10 25;
+    --foreground: 248 250 252;
+    --card: 21 19 43;
+    --card-foreground: 248 250 252;
+    --popover: 21 19 43;
+    --popover-foreground: 248 250 252;
+    --primary: 99 102 241;
+    --primary-foreground: 255 255 255;
+    --secondary: 30 27 57;
+    --secondary-foreground: 248 250 252;
+    --muted: 30 27 57;
+    --muted-foreground: 148 163 184;
+    --accent: 42 39 80;
+    --accent-foreground: 248 250 252;
+    --destructive: 127 29 29;
+    --destructive-foreground: 248 250 252;
+    --border: 45 42 74;
+    --input: 45 42 74;
+    --ring: 99 102 241;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+@layer utilities {
+  .font-heading {
+    font-family: 'Outfit', sans-serif;
+  }
+  .font-body {
+    font-family: 'DM Sans', sans-serif;
+  }
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--muted-foreground) / 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--muted-foreground) / 0.5);
+}
+
+/* Animation Utilities */
+.transition-theme {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Glass morphism */
+.glass {
+  @apply backdrop-blur-xl bg-card/80 dark:bg-card/60;
+}
+
+.glass-sidebar {
+  @apply backdrop-blur-2xl bg-card/90 dark:bg-card/70;
+}
+
+/* Glass Mode - Applied when enabled */
+.glass-mode .glass-card,
+.glass-mode .bg-card {
+  @apply backdrop-blur-lg bg-card/60 dark:bg-card/40 border-white/20 dark:border-white/10 shadow-xl;
+}
+
+.glass-mode .glass-sidebar,
+.glass-mode aside {
+  @apply backdrop-blur-xl bg-card/50 dark:bg-card/30 border-white/20 dark:border-white/10;
+}
+
+.glass-mode .glass-modal,
+.glass-mode [role="dialog"] {
+  @apply backdrop-blur-2xl bg-card/70 dark:bg-card/50 border-white/20 dark:border-white/10;
+}
+
+.glass-mode .glass-table,
+.glass-mode table {
+  @apply backdrop-blur-md bg-card/50 dark:bg-card/30;
+}
+
+.glass-mode header {
+  @apply backdrop-blur-xl bg-card/50 dark:bg-card/30 border-white/20 dark:border-white/10;
+}
+
+/* Enhanced card styles for glass mode */
+.glass-mode [class*="Card"],
+.glass-mode [class*="card"] {
+  @apply backdrop-blur-lg bg-card/60 dark:bg-card/40 border-white/20 dark:border-white/10;
+}
+
+/* Responsive fixes - prevent overlapping */
+@media (max-width: 768px) {
+  .sidebar-collapsed {
+    @apply ml-0;
+  }
+  
+  /* Hide sidebar on mobile - it's handled via Sidebar component */
+}
+
+/* Ensure proper spacing throughout */
+.page-container {
+  @apply p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto;
+}
+
+/* Prevent text overflow */
+.truncate-overflow {
+  @apply overflow-hidden text-ellipsis whitespace-nowrap;
+}
+
+/* Responsive table */
+@media (max-width: 640px) {
+  table {
+    @apply text-sm;
+  }
+  
+  th, td {
+    @apply px-2 py-3;
+  }
+}
+
+/* Responsive grid fixes */
+@media (max-width: 640px) {
+  .grid-cols-2 {
+    @apply grid-cols-1;
+  }
+}
+
+/* Form field spacing consistency */
+.form-field {
+  @apply space-y-2;
+}
+
+/* Card spacing consistency */
+.card-content-spacing {
+  @apply space-y-4;
+}
+
+/* Button group spacing */
+.button-group {
+  @apply flex flex-wrap gap-3;
+}
+
+/* Settings page specific styles */
+.settings-sidebar {
+  @apply w-64 min-w-64 border-r border-border bg-card/50;
+}
+
+/* Smooth transitions for all interactive elements */
+button, a, .hover\\:bg-accent {
+  @apply transition-all duration-200;
+}
+
+/* Grain texture for dark mode */
+.dark .grain::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Stepper line animation */
+@keyframes stepper-progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.stepper-line-animate {
+  animation: stepper-progress 0.5s ease-out forwards;
+}
+
+/* Card hover effects */
+.card-interactive {
+  @apply transition-all duration-200 ease-out;
+}
+
+.card-interactive:hover {
+  @apply -translate-y-1;
+}
+
+/* Focus styles */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background;
+}
+
+/* Login page background gradient */
+.bg-login-gradient {
+  @apply bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900;
+}
+
+/* Shadow glow effect */
+.shadow-glow {
+  box-shadow: 0 0 40px rgba(var(--primary), 0.3);
+}
+
+/* Additional responsive helpers */
+@media (max-width: 640px) {
+  .hide-on-mobile {
+    @apply hidden;
+  }
+}
+
+@media (min-width: 641px) {
+  .show-on-mobile-only {
+    @apply hidden;
+  }
+}
