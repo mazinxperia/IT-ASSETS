@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Loader2, DollarSign, Eye, RefreshCw, Clock, Calendar, Users, ArrowLeftRight, MessageSquare, Filter } from 'lucide-react';
+import { Loader2, DollarSign, Eye, RefreshCw, Clock, Calendar, Users, ArrowLeftRight, MessageSquare, Filter, ArrowUpDown } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Label } from '../ui/label';
 import { Switch } from '../ui/switch';
@@ -19,6 +19,15 @@ const CURRENCIES = [
   { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
   { code: 'CAD', symbol: 'CA$', name: 'Canadian Dollar' },
   { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
+];
+
+const EMPLOYEE_SORT_OPTIONS = [
+  { value: 'employeeId-asc', label: 'Employee ID (Ascending)' },
+  { value: 'employeeId-desc', label: 'Employee ID (Descending)' },
+  { value: 'name-asc', label: 'Name (A → Z)' },
+  { value: 'name-desc', label: 'Name (Z → A)' },
+  { value: 'assets-asc', label: 'Assets Assigned (Low to High)' },
+  { value: 'assets-desc', label: 'Assets Assigned (High to Low)' },
 ];
 
 function ToggleRow({ label, desc, value, onChange }) {
@@ -62,6 +71,7 @@ export function DashboardSettings() {
   const [recentTransfersCount, setRecentTransfersCount] = useState('5');
   const [welcomeMessage, setWelcomeMessage] = useState('');
   const [defaultAssetFilter, setDefaultAssetFilter] = useState('all');
+  const [dashboardEmployeeSort, setDashboardEmployeeSort] = useState('assets-desc');
 
   useEffect(() => { fetchSettings(); }, []);
   useEffect(() => {
@@ -83,6 +93,7 @@ export function DashboardSettings() {
       setRecentTransfersCount(String(d.recentTransfersCount || 5));
       setWelcomeMessage(d.welcomeMessage || '');
       setDefaultAssetFilter(d.defaultAssetFilter || 'all');
+      setDashboardEmployeeSort(d.dashboardEmployeeSort || 'assets-desc');
     } catch {}
     finally { setLoading(false); }
   };
@@ -112,6 +123,7 @@ export function DashboardSettings() {
         recentTransfersCount: parseInt(recentTransfersCount) || 5,
         welcomeMessage,
         defaultAssetFilter,
+        dashboardEmployeeSort,
       });
       toast.success('Dashboard settings saved');
     } catch { toast.error('Failed to save settings'); }
@@ -264,7 +276,25 @@ export function DashboardSettings() {
         </CardContent>
       </Card>
 
-      {/* 6. Default Asset Filter */}
+      {/* 6. Employee Sort Order (NEW) */}
+      <Card>
+        <SectionHeader icon={ArrowUpDown} title="Dashboard Employee Sort"
+          description="How employees are sorted in the 'Employees by Assets' widget on the dashboard" />
+        <CardContent>
+          <Select value={dashboardEmployeeSort} onValueChange={setDashboardEmployeeSort}>
+            <SelectTrigger className="w-72"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {EMPLOYEE_SORT_OPTIONS.map(option => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      {/* 7. Default Asset Filter */}
       <Card>
         <SectionHeader icon={Filter} title="Default Asset Filter"
           description="Which filter is applied when you open the Assets page" />
@@ -280,7 +310,7 @@ export function DashboardSettings() {
         </CardContent>
       </Card>
 
-      {/* 7. Welcome Message */}
+      {/* 8. Welcome Message */}
       <Card>
         <SectionHeader icon={MessageSquare} title="Welcome Message"
           description="Custom message shown under the Dashboard heading. Leave blank for default." />
@@ -294,7 +324,7 @@ export function DashboardSettings() {
         </CardContent>
       </Card>
 
-      {/* 8. Widget Visibility */}
+      {/* 9. Widget Visibility */}
       <Card>
         <SectionHeader icon={Eye} title="Widget Visibility"
           description="Choose which widgets appear on the dashboard" />

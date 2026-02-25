@@ -886,6 +886,7 @@ export default function DashboardPage() {
   const [showDbStorage, setShowDbStorage] = useState(true);
   const [expiryWarningDays, setExpiryWarningDays] = useState(30);
   const [refreshInterval, setRefreshInterval] = useState(0);
+  const [dashboardEmployeeSort, setDashboardEmployeeSort] = useState('assets-desc');
   const [topEmployeesCount, setTopEmployeesCount] = useState(5);
   const [recentTransfersCount, setRecentTransfersCount] = useState(5);
   const [welcomeMessage, setWelcomeMessage] = useState('');
@@ -911,6 +912,7 @@ export default function DashboardPage() {
         setShowDbStorage(appSettings.showDbStorage !== false);
         setExpiryWarningDays(appSettings.expiryWarningDays || 30);
         setRefreshInterval(appSettings.refreshInterval || 0);
+        setDashboardEmployeeSort(appSettings.dashboardEmployeeSort || 'assets-desc');
         setTopEmployeesCount(employeesLimit);
         setRecentTransfersCount(transfersLimit);
         setWelcomeMessage(appSettings.welcomeMessage || '');
@@ -927,11 +929,38 @@ export default function DashboardPage() {
         ]);
 
         setTransfers((transfersRes.data || []).slice(0, transfersLimit));
-        const emps = (employeesRes.data || [])
+        
+        // Map employees with asset counts
+        let emps = (employeesRes.data || [])
           .map(e => ({ ...e, assetCount: e.assetCount || e._count?.assets || 0 }))
-          .filter(e => e.assetCount > 0)
-          .sort((a, b) => b.assetCount - a.assetCount)
-          .slice(0, employeesLimit);
+          .filter(e => e.assetCount > 0);
+
+        // Apply sorting based on dashboardEmployeeSort setting
+        const sortSetting = appSettings.dashboardEmployeeSort || 'assets-desc';
+        const [sortField, sortOrder] = sortSetting.split('-');
+        
+        emps.sort((a, b) => {
+          let compareA, compareB;
+          
+          if (sortField === 'employeeId') {
+            compareA = a.employeeId || '';
+            compareB = b.employeeId || '';
+          } else if (sortField === 'name') {
+            compareA = (a.name || '').toLowerCase();
+            compareB = (b.name || '').toLowerCase();
+          } else if (sortField === 'assets') {
+            compareA = a.assetCount;
+            compareB = b.assetCount;
+          }
+          
+          if (sortOrder === 'asc') {
+            return compareA > compareB ? 1 : compareA < compareB ? -1 : 0;
+          } else {
+            return compareA < compareB ? 1 : compareA > compareB ? -1 : 0;
+          }
+        });
+
+        emps = emps.slice(0, employeesLimit);
         setEmployeeAssets(emps);
         setSubs(subsRes.data || []);
 
