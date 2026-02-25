@@ -4,6 +4,12 @@
 
 
 
+
+
+
+
+
+
 # macOS Local Installation (Auto Setup Script)
 
 This project includes an automatic setup script for macOS.
@@ -44,6 +50,82 @@ After installation, it will generate:
 start.command
 
 You can use start.command anytime later to run the app again.
+
+
+
+
+
+
+
+
+
+
+# Windows Local Installation (Auto Setup Script)
+
+This project also includes an automatic setup script for Windows.
+
+It installs:
+
+- Backend (Python + FastAPI)
+- Frontend (Node + React)
+- Required dependencies
+- Creates virtual environment
+- Installs npm packages
+- Asks for your MongoDB URI
+- Automatically starts the application
+
+------------------------------------------------------------
+
+## Requirements (Windows)
+
+Before running the installer, make sure:
+
+- Python 3.11 is installed  
+  https://www.python.org/downloads/  
+  (IMPORTANT: enable "Add Python to PATH" during installation)
+
+- Node.js is installed  
+  https://nodejs.org/
+
+------------------------------------------------------------
+
+## How To Install On Windows
+
+1. Download or clone the GitHub repository
+
+2. Open the project root folder
+
+3. Double-click:
+
+windows_installer.bat
+
+OR
+
+Open Command Prompt inside the root folder and run:
+
+windows_installer.bat
+
+------------------------------------------------------------
+
+The installer will:
+
+• Ask for your MongoDB URI  
+• Install backend & frontend  
+• Start the application  
+
+After installation, it will generate:
+
+start.bat
+
+You can use start.bat anytime later to run the app again.
+
+
+
+
+
+
+
+
 
 
 
