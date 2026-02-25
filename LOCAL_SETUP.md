@@ -1,5 +1,53 @@
 # 🚀 AssetFlow - Complete Local Setup Guide
 
+
+
+
+
+# macOS Local Installation (Auto Setup Script)
+
+This project includes an automatic setup script for macOS.
+
+It installs:
+
+- Backend (Python + FastAPI)
+- Frontend (Node + React)
+- Required dependencies
+- Creates virtual environment
+- Installs npm packages
+- Asks for your MongoDB URI
+- Automatically starts the application
+
+------------------------------------------------------------
+
+## How To Install On macOS
+
+1. Download or clone the GitHub repository
+
+2. Open Terminal inside the project root folder
+
+3. Run:
+
+chmod +x install.command
+./install.command
+
+------------------------------------------------------------
+
+The installer will:
+
+• Ask for your MongoDB URI  
+• Install backend & frontend  
+• Start the application  
+
+After installation, it will generate:
+
+start.command
+
+You can use start.command anytime later to run the app again.
+
+
+
+
 ## ⚠️ IMPORTANT: Follow Steps in Exact Order
 
 This guide will get AssetFlow running on your computer in 30 minutes.
