@@ -1,0 +1,56 @@
+/* ============================================
+   AssetFlow Performance CSS
+   Add @import or paste into your index.css
+   ============================================ */
+
+/* Fast page fade - replaces Framer Motion page transitions */
+@keyframes pageFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.page-fade-in {
+  animation: pageFadeIn 0.12s ease-out forwards;
+}
+
+/* GPU-accelerated scrolling */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Smooth scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(128,128,128,0.5); }
+
+/* Force GPU compositing on animated elements only */
+.grain {
+  /* grain effect is expensive - make it a separate layer */
+  isolation: isolate;
+}
+
+/* Prevent layout thrash on table rows */
+table { table-layout: fixed; }
+
+/* Make hover transitions instant-feeling */
+button, a, [role="button"] {
+  transition-duration: 100ms !important;
+}
+
+/* Cards - remove slow box-shadow transitions */
+.rounded-2xl, .rounded-xl, .rounded-lg {
+  transition: none;
+}
+
+/* Only animate what needs it */
+.animate-only {
+  will-change: transform, opacity;
+}
+
+/* Disable all animations if user prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

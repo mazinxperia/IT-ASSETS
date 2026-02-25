@@ -36,6 +36,7 @@ import {
   AlertDialogTitle,
 } from '../components/ui/alert-dialog';
 import { employeesAPI } from '../services/api';
+import { cachedAPI, invalidateCache } from '../services/apiCache';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
@@ -54,7 +55,7 @@ export default function ModernEmployeesPage() {
 
   async function fetchEmployees() {
     try {
-      const response = await employeesAPI.getAll();
+      const response = await cachedAPI('employees', () => employeesAPI.getAll());
       setEmployees(response.data);
     } catch (error) {
       toast.error('Failed to load employees');
@@ -80,6 +81,7 @@ export default function ModernEmployeesPage() {
     
     try {
       await employeesAPI.delete(deleteDialog.employee.id);
+      invalidateCache(['employees', 'dashboard-stats']);
       setEmployees(prev => prev.filter(e => e.id !== deleteDialog.employee.id));
       toast.success('Employee deleted successfully');
     } catch (error) {

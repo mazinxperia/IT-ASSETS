@@ -44,6 +44,7 @@ import {
   AlertDialogTitle,
 } from '../components/ui/alert-dialog';
 import { employeesAPI, assetsAPI, transfersAPI, assetTypesAPI } from '../services/api';
+import { cachedAPI, invalidateCache } from '../services/apiCache';
 import { useAuth } from '../context/AuthContext';
 import { cn, downloadCSV } from '../lib/utils';
 import { toast } from 'sonner';
@@ -98,11 +99,11 @@ export default function TransfersPage() {
   async function fetchData() {
     try {
       const [employeesRes, inventoryRes, transfersRes, typesRes, allAssetsRes] = await Promise.all([
-        employeesAPI.getAll(),
-        assetsAPI.getInventory(),
-        transfersAPI.getAll(),
-        assetTypesAPI.getAll(),
-        assetsAPI.getAll()
+        cachedAPI('employees', () => employeesAPI.getAll()),
+        cachedAPI('inventory', () => assetsAPI.getInventory()),
+        cachedAPI('transfers', () => transfersAPI.getAll()),
+        cachedAPI('asset-types', () => assetTypesAPI.getAll()),
+        cachedAPI('assets', () => assetsAPI.getAll()),
       ]);
       setEmployees(employeesRes.data);
       setInventory(inventoryRes.data);
@@ -389,7 +390,7 @@ export default function TransfersPage() {
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.15 }}
             >
               {/* Step 1: Select Source */}
               {currentStep === 0 && (

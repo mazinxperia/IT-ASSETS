@@ -22,6 +22,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '../components/ui/dialog';
 import { subscriptionsAPI, employeesAPI, filesAPI } from '../services/api';
+import { cachedAPI, invalidateCache } from '../services/apiCache';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '../lib/utils';
@@ -339,7 +340,7 @@ function SubTable({ items, title, variant, onEdit, onDelete, onView, isReadOnly 
       <AnimatePresence initial={false}>
         {!collapsed && (
           <motion.div key="content" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25, ease: 'easeInOut' }} style={{ overflow: 'hidden' }}>
+            exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25, ease: 'easeOut' }} style={{ overflow: 'hidden' }}>
             {items.length === 0 ? (
               <div className="py-12 text-center text-muted-foreground text-sm">No subscriptions here</div>
             ) : (
@@ -362,7 +363,7 @@ function SubTable({ items, title, variant, onEdit, onDelete, onView, isReadOnly 
 
                     return (
                       <motion.tr key={sub.id}
-                        initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
                         onClick={() => onView(sub)}
                         className="hover:bg-muted/30 cursor-pointer transition-colors group">
 
@@ -471,7 +472,10 @@ export default function SubscriptionsPage() {
 
   async function fetchData() {
     try {
-      const [subsRes, empRes] = await Promise.all([subscriptionsAPI.getAll(), employeesAPI.getAll()]);
+      const [subsRes, empRes] = await Promise.all([
+        cachedAPI('subscriptions', () => subscriptionsAPI.getAll()),
+        cachedAPI('employees', () => employeesAPI.getAll()),
+      ]);
       setSubs(subsRes.data);
       setEmployees(empRes.data);
     } catch { toast.error('Failed to load subscriptions'); }
@@ -490,6 +494,7 @@ export default function SubscriptionsPage() {
     try {
       // Delete subscription (backend will handle logo file cleanup)
       await subscriptionsAPI.delete(deleteDialog.sub.id);
+      invalidateCache(['subscriptions']);
       setSubs(prev => prev.filter(s => s.id !== deleteDialog.sub.id));
       toast.success('Subscription deleted');
     } catch { toast.error('Failed to delete'); }

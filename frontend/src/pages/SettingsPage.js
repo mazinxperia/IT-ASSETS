@@ -272,7 +272,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div data-testid="settings-page" className="flex h-[calc(100vh-5rem)] -m-4 sm:-m-6 lg:-m-8">
+    <div data-testid="settings-page" className="flex -m-4 sm:-m-6 lg:-m-8" style={{ height: 'calc(100vh - 4rem)' }}>
       {/* Settings Sidebar */}
       <SettingsSidebar
         activeItem={activeItem}
@@ -283,7 +283,7 @@ export default function SettingsPage() {
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto">
-        <div className="p-6 lg:p-8 max-w-4xl">
+        <div className="p-6 lg:p-8 max-w-4xl mx-auto">
           <PageHeader 
             title={getTitle()}
             description="Configure your IT Asset Management system"

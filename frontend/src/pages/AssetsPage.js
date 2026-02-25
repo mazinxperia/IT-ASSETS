@@ -43,6 +43,7 @@ import {
   AlertDialogTitle,
 } from '../components/ui/alert-dialog';
 import { assetsAPI, assetTypesAPI, employeesAPI } from '../services/api';
+import { cachedAPI, invalidateCache } from '../services/apiCache';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 
@@ -84,9 +85,9 @@ export default function ModernAssetsPage() {
   async function fetchData() {
     try {
       const [assetsRes, typesRes, employeesRes] = await Promise.all([
-        assetsAPI.getAll(),
-        assetTypesAPI.getAll(),
-        employeesAPI.getAll(),
+        cachedAPI('assets', () => assetsAPI.getAll()),
+        cachedAPI('asset-types', () => assetTypesAPI.getAll()),
+        cachedAPI('employees', () => employeesAPI.getAll()),
       ]);
       setAssets(assetsRes.data);
       setAssetTypes(typesRes.data);
@@ -159,6 +160,7 @@ export default function ModernAssetsPage() {
     if (!deleteDialog.asset) return;
     try {
       await assetsAPI.delete(deleteDialog.asset.id);
+      invalidateCache(['assets', 'dashboard-stats', 'inventory']);
       setAssets(prev => prev.filter(a => a.id !== deleteDialog.asset.id));
       toast.success('Asset deleted successfully');
     } catch (error) {
@@ -271,7 +273,7 @@ export default function ModernAssetsPage() {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.25, ease: 'easeInOut' }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
                     style={{ overflow: 'hidden' }}
                   >
                     <Table style={{ tableLayout: 'fixed', width: '100%' }}>

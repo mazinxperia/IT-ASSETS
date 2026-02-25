@@ -8,8 +8,10 @@ import {
   Globe, Lock, ShieldAlert, Calendar, ChevronLeft
 } from 'lucide-react';
 import { dashboardAPI, transfersAPI, employeesAPI, subscriptionsAPI, clearAPI, settingsAPI } from '../services/api';
+import { cachedAPI } from '../services/apiCache';
 import { LoadingPage } from '../components/common/LoadingSpinner';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 // ── Donut Chart ──────────────────────────────────────────────────────────────
 function DonutChart({ data }) {
@@ -65,7 +67,7 @@ function DonutChart({ data }) {
       </div>
       <div className="flex flex-col gap-1.5 flex-1 w-full">
         {slices.map((s, i) => (
-          <motion.div key={i} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+          <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
             className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl cursor-pointer transition-all duration-200"
             style={{ background: hovered === i ? s.color + '18' : 'transparent', transform: hovered === i ? 'translateX(4px)' : 'none' }}
             onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)}>
@@ -75,7 +77,7 @@ function DonutChart({ data }) {
             </div>
             <div className="flex items-center gap-2">
               <div className="h-1 rounded-full bg-muted overflow-hidden" style={{ width: 60 }}>
-                <motion.div initial={{ width: 0 }} animate={{ width: `${s.pct * 100}%` }} transition={{ delay: 0.3 + i * 0.05, type: 'spring' }}
+                <motion.div initial={{ width: 0 }} animate={{ width: `${s.pct * 100}%` }} transition={{ duration: 0.1 }}
                   className="h-full rounded-full" style={{ background: s.color }} />
               </div>
               <span className="text-sm font-bold w-6 text-right">{s.count}</span>
@@ -117,7 +119,7 @@ function BarChart({ data }) {
               <motion.div
                 initial={{ height: 0 }}
                 animate={{ height: `${Math.max(pct * 100, 5)}%` }}
-                transition={{ delay: i * 0.07, type: 'spring', stiffness: 160, damping: 18 }}
+                transition={{ delay: i * 0.03, type: 'spring', stiffness: 400, damping: 30 }}
                 className="w-full rounded-xl"
                 style={{
                   background: color,
@@ -143,7 +145,7 @@ function BarChart({ data }) {
 // ── Assignment Ring ───────────────────────────────────────────────────────────
 function AssignmentRing({ assigned, inventory, total }) {
   const [animated, setAnimated] = useState(false);
-  useEffect(() => { setTimeout(() => setAnimated(true), 400); }, []);
+  useEffect(() => { setTimeout(() => setAnimated(true), 150); }, []);
   const pct = total ? assigned / total : 0;
   const invPct = total ? inventory / total : 0;
   const size = 140, r = 52, cx = size / 2, cy = size / 2, sw = 20;
@@ -158,13 +160,13 @@ function AssignmentRing({ assigned, inventory, total }) {
             strokeDasharray={`${circ} ${circ}`}
             animate={{ strokeDashoffset: animated ? circ * (1 - invPct) : circ }}
             initial={{ strokeDashoffset: circ }}
-            transition={{ duration: 1.2, ease: 'easeOut', delay: 0.2 }}
+            transition={{ duration: 0.15, ease: 'easeOut', delay: 0.2 }}
             strokeLinecap="round" />
           <motion.circle cx={cx} cy={cy} r={r} fill="none" stroke="#10b981" strokeWidth={sw}
             strokeDasharray={`${circ} ${circ}`}
             animate={{ strokeDashoffset: animated ? circ * (1 - pct) : circ }}
             initial={{ strokeDashoffset: circ }}
-            transition={{ duration: 1.4, ease: 'easeOut', delay: 0.4 }}
+            transition={{ duration: 0.15, ease: 'easeOut', delay: 0.4 }}
             strokeLinecap="round" />
         </svg>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
@@ -181,7 +183,7 @@ function AssignmentRing({ assigned, inventory, total }) {
           </div>
           <div className="h-2 rounded-full bg-muted overflow-hidden">
             <motion.div initial={{ width: 0 }} animate={{ width: `${pct * 100}%` }}
-              transition={{ delay: 0.6, duration: 1.2, ease: 'easeOut' }}
+              transition={{ delay: 0.6, duration: 0.15, ease: 'easeOut' }}
               className="h-full rounded-full bg-emerald-500" />
           </div>
         </div>
@@ -192,7 +194,7 @@ function AssignmentRing({ assigned, inventory, total }) {
           </div>
           <div className="h-2 rounded-full bg-muted overflow-hidden">
             <motion.div initial={{ width: 0 }} animate={{ width: `${invPct * 100}%` }}
-              transition={{ delay: 0.8, duration: 1.2, ease: 'easeOut' }}
+              transition={{ delay: 0.8, duration: 0.15, ease: 'easeOut' }}
               className="h-full rounded-full bg-amber-500" />
           </div>
         </div>
@@ -255,13 +257,13 @@ function StatCard({ title, value, icon: Icon, color, delay, onClick, subtitle })
         boxShadow: hovered ? `0 20px 40px ${color}25, 0 0 0 1px ${color}30` : undefined,
       }}
     >
-      <motion.div animate={{ opacity: hovered ? 1 : 0 }} transition={{ duration: 0.3 }}
+      <motion.div animate={{ opacity: hovered ? 1 : 0 }} transition={{ duration: 0.15 }}
         className="absolute inset-0 pointer-events-none"
         style={{ background: `radial-gradient(ellipse at 20% 20%, ${color}18, transparent 65%)` }} />
-      <motion.div animate={{ scale: hovered ? 1.2 : 1, opacity: hovered ? 0.7 : 0.2 }} transition={{ duration: 0.5 }}
+      <motion.div animate={{ scale: hovered ? 1.2 : 1, opacity: hovered ? 0.7 : 0.2 }} transition={{ duration: 0.15 }}
         className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full pointer-events-none"
         style={{ background: color + '40' }} />
-      <motion.div animate={{ scale: hovered ? 1.3 : 1, opacity: hovered ? 0.3 : 0.1 }} transition={{ duration: 0.6 }}
+      <motion.div animate={{ scale: hovered ? 1.3 : 1, opacity: hovered ? 0.3 : 0.1 }} transition={{ duration: 0.15 }}
         className="absolute -right-2 -bottom-2 w-16 h-16 rounded-full pointer-events-none"
         style={{ background: color }} />
       <div className="relative">
@@ -331,7 +333,7 @@ function EmployeeRow({ emp, index, max }) {
   const initials = emp.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '??';
 
   return (
-    <motion.div initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.06 }}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: index * 0.06 }}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       className="flex items-center gap-3 py-2.5 rounded-xl px-2 transition-all duration-200"
       style={{ background: hovered ? color + '10' : 'transparent' }}>
@@ -349,7 +351,7 @@ function EmployeeRow({ emp, index, max }) {
         </div>
         <div className="h-1.5 rounded-full bg-muted overflow-hidden">
           <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }}
-            transition={{ delay: 0.4 + index * 0.06, type: 'spring', stiffness: 100 }}
+            transition={{ duration: 0.1 }}
             className="h-full rounded-full"
             style={{ background: color, boxShadow: hovered ? `0 0 6px ${color}` : 'none', transition: 'box-shadow 0.25s' }} />
         </div>
@@ -421,7 +423,7 @@ function SubscriptionsWidget({ subs, navigate, displayCurrency = 'USD', exchange
   const maxBar = Math.max(...byBilling.map(b => b.count), 1);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.45 }}
       className="rounded-2xl border bg-card p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
@@ -454,7 +456,7 @@ function SubscriptionsWidget({ subs, navigate, displayCurrency = 'USD', exchange
               { label: 'Expiring Soon', value: expiringSoon.length, color: '#f59e0b', bg: '#f59e0b15' },
               { label: 'Expired', value: expired.length, color: '#f43f5e', bg: '#f43f5e15' },
             ].map((item, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + i * 0.05 }}
+              <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.1 }}
                 className="rounded-xl p-3 text-center" style={{ background: item.bg }}>
                 <div className="text-2xl font-bold tabular-nums" style={{ color: item.color }}>{item.value}</div>
                 <div className="text-xs text-muted-foreground mt-0.5">{item.label}</div>
@@ -489,7 +491,7 @@ function SubscriptionsWidget({ subs, navigate, displayCurrency = 'USD', exchange
                     onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)}>
                     <AnimatePresence>
                       {isH && (
-                        <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                           className="text-xs font-bold px-2 py-0.5 rounded-md text-white"
                           style={{ background: b.color }}>
                           {b.count}
@@ -498,7 +500,7 @@ function SubscriptionsWidget({ subs, navigate, displayCurrency = 'USD', exchange
                     </AnimatePresence>
                     <div className="relative w-full flex items-end" style={{ height: 60 }}>
                       <motion.div initial={{ height: 0 }} animate={{ height: `${Math.max(pct * 100, 6)}%` }}
-                        transition={{ delay: 0.6 + i * 0.08, type: 'spring', stiffness: 180 }}
+                        transition={{ duration: 0.1 }}
                         className="w-full rounded-t-lg cursor-pointer"
                         style={{
                           background: isH ? b.color : b.color + '80',
@@ -521,7 +523,7 @@ function SubscriptionsWidget({ subs, navigate, displayCurrency = 'USD', exchange
                 <AlertTriangle className="w-3 h-3" /> Expiring within 30 days
               </div>
               {expiringSoon.slice(0, 3).map((s, i) => (
-                <motion.div key={s.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 + i * 0.05 }}
+                <motion.div key={s.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.1 }}
                   className="flex items-center justify-between py-2 border-b border-border last:border-0 text-sm">
                   <div className="flex items-center gap-2">
                     <Globe className="w-3.5 h-3.5 text-muted-foreground" />
@@ -574,7 +576,7 @@ function DatabaseStorageWidget() {
   const maxSize = Math.max(...collections.map(([, v]) => (typeof v === 'object' ? v.size : 0)), 1);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
       className="rounded-2xl border bg-card p-6">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
@@ -607,7 +609,7 @@ function DatabaseStorageWidget() {
               { label: 'Allocated (Atlas)', value: formatBytes(stats.storageSize), color: barColor },
               { label: 'Records', value: stats.objects || 0, color: '#10b981' },
             ].map((item, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 + i * 0.05 }}
+              <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.1 }}
                 className="rounded-xl bg-muted/40 p-3">
                 <div className="text-base font-bold tabular-nums" style={{ color: item.color }}>{item.value}</div>
                 <div className="text-xs text-muted-foreground mt-0.5">{item.label}</div>
@@ -644,13 +646,13 @@ function DatabaseStorageWidget() {
                 const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                 return (
                   <motion.div key={key} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.65 + i * 0.05 }}
+                    transition={{ duration: 0.1 }}
                     className="flex items-center gap-2">
                     <div className="w-20 text-xs text-muted-foreground truncate flex-shrink-0">{label}</div>
                     <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
                       <motion.div className="h-full rounded-full" style={{ background: color }}
                         initial={{ width: 0 }} animate={{ width: `${Math.max(pct, size > 0 ? 4 : 0)}%` }}
-                        transition={{ delay: 0.7 + i * 0.05, type: 'spring', stiffness: 120 }} />
+                        transition={{ duration: 0.1 }} />
                     </div>
                     <div className="text-xs tabular-nums text-muted-foreground w-14 text-right flex-shrink-0">
                       {formatBytes(size)}
@@ -672,7 +674,7 @@ function DatabaseStorageWidget() {
 // ── Super Admin Lock Card ────────────────────────────────────────────────────
 function LockedWidget({ title, icon: Icon, color }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
       className="rounded-2xl border bg-card p-6 flex flex-col items-center justify-center gap-3 min-h-[200px]">
       <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: color + '15' }}>
         <ShieldAlert className="w-6 h-6" style={{ color }} />
@@ -693,152 +695,178 @@ function LockedWidget({ title, icon: Icon, color }) {
 
 function AssetTypeCards({ data, navigate }) {
   const scrollRef = useRef(null);
-  const [canLeft, setCanLeft] = useState(false);
-  const [canRight, setCanRight] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const { accentColor } = useTheme();
   const COLORS = ['#f43f5e','#3b82f6','#10b981','#f59e0b','#8b5cf6','#06b6d4','#ec4899','#84cc16'];
-  const count = data.length;
-  const needsScroll = count > 4;
+  const CARDS_PER_PAGE = 4;
   const total = data.reduce((s, d) => s + (d.count || 0), 0);
+  const pageCount = Math.ceil(data.length / CARDS_PER_PAGE);
+  const needsScroll = data.length > CARDS_PER_PAGE;
 
-  useEffect(() => {
-    if (!needsScroll) return;
+  // Scroll to page when dot clicked
+  const scrollToPage = (pageIdx) => {
     const el = scrollRef.current;
     if (!el) return;
-    const check = () => {
-      setCanLeft(el.scrollLeft > 4);
-      setCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
-    };
-    check();
-    el.addEventListener('scroll', check);
-    return () => el.removeEventListener('scroll', check);
-  }, [data, needsScroll]);
-
-  useEffect(() => {
-    if (needsScroll) setCanRight(true);
-  }, [needsScroll]);
-
-  const scroll = (dir) => {
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollBy({ left: dir * (el.clientWidth / 4 + 16), behavior: 'smooth' });
+    const cardWidth = el.clientWidth / CARDS_PER_PAGE;
+    el.scrollTo({ left: pageIdx * CARDS_PER_PAGE * (cardWidth + 16), behavior: 'smooth' });
+    setActiveIndex(pageIdx);
   };
 
-  const gridCols = count === 1 ? 'grid-cols-1' : count === 2 ? 'grid-cols-2' : count === 3 ? 'grid-cols-3' : 'grid-cols-4';
+  // Update active dot on scroll
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const cardWidth = el.clientWidth / CARDS_PER_PAGE;
+      const page = Math.round(el.scrollLeft / (CARDS_PER_PAGE * (cardWidth + 16)));
+      setActiveIndex(Math.min(page, pageCount - 1));
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [pageCount]);
+
+  const gridCols = data.length === 1 ? 'grid-cols-1' : data.length === 2 ? 'grid-cols-2' : data.length === 3 ? 'grid-cols-3' : 'grid-cols-4';
+
+  const CardItem = ({ d, i }) => {
+    const color = COLORS[i % COLORS.length];
+    const pct = total ? Math.round((d.count / total) * 100) : 0;
+    return (
+      <div
+        onClick={() => navigate('/assets')}
+        className="rounded-2xl border border-border cursor-pointer overflow-hidden flex-shrink-0 group"
+        style={{
+          background: 'var(--card)',
+          width: needsScroll ? 'calc((100% - 48px) / 4)' : undefined,
+          transition: 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.transform = 'translateY(-4px)';
+          e.currentTarget.style.boxShadow = `0 12px 32px ${color}35`;
+          e.currentTarget.style.borderColor = `${accentColor}60`;
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = 'none';
+          e.currentTarget.style.borderColor = '';
+        }}
+      >
+        {/* Top color bar */}
+        <div className="h-1.5 w-full" style={{ background: color }} />
+        <div className="p-4">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${color}20` }}>
+            <Package className="w-5 h-5" style={{ color }} />
+          </div>
+          <div className="font-semibold text-sm truncate mb-1 uppercase tracking-wide">{d.name}</div>
+          <div className="text-3xl font-bold tabular-nums" style={{ color }}>{d.count || 0}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">assets</div>
+          <div className="mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
+            <div className="h-full rounded-full" style={{ background: color, width: `${pct}%`, transition: 'width 0.4s ease' }} />
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">{pct}% of total</div>
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <>
-      <style>{`
-        @keyframes arrowPulse {
-          0%, 100% { box-shadow: 0 0 4px rgba(var(--primary), 0.7), 0 0 8px rgba(var(--primary), 0.4); opacity: 0.9; }
-          50% { box-shadow: 0 0 8px rgba(var(--primary), 1), 0 0 16px rgba(var(--primary), 0.6); opacity: 1; }
-        }
-        .arrow-active {
-          animation: arrowPulse 1.4s ease-in-out infinite;
-          border: 1.5px solid rgb(var(--primary)) !important;
-          color: rgb(var(--primary)) !important;
-          cursor: pointer;
-        }
-        .arrow-inactive {
-          border: 1.5px solid #333;
-          color: #555;
-          cursor: default;
-        }
-        .asset-scroll::-webkit-scrollbar { display: none; }
-      `}</style>
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-        className="rounded-2xl border bg-card p-6">
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Package className="w-4 h-4 text-primary" />
-            </div>
-            <h2 className="font-semibold text-base">Asset Types</h2>
-            <span className="text-xs text-muted-foreground ml-1">{total} total</span>
+    <div className="rounded-2xl border bg-card p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${accentColor}20` }}>
+            <Package className="w-4 h-4" style={{ color: accentColor }} />
           </div>
-          {needsScroll && (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => scroll(-1)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${canLeft ? 'arrow-active' : 'arrow-inactive'}`}>
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => scroll(1)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${canRight ? 'arrow-active' : 'arrow-inactive'}`}>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+          <h2 className="font-semibold text-base">Asset Types</h2>
+          <span className="text-xs text-muted-foreground ml-1">{total} total</span>
         </div>
 
-        {needsScroll ? (
-          <div className="overflow-hidden">
-            <div ref={scrollRef} className="asset-scroll flex gap-4"
-              style={{ overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-              {data.map((d, i) => {
-                const color = COLORS[i % COLORS.length];
-                const pct = total ? Math.round((d.count / total) * 100) : 0;
-                return (
-                  <motion.div key={i}
-                    initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-                    onClick={() => navigate('/assets')}
-                    whileHover={{ y: -4, boxShadow: `0 8px 30px ${color}30` }}
-                    className="rounded-2xl border border-border cursor-pointer overflow-hidden hover:border-primary/40 flex-shrink-0"
-                    style={{ background: 'var(--card)', width: 'calc((100% - 48px) / 4)' }}>
-                    <div className="h-1.5 w-full" style={{ background: color }} />
-                    <div className="p-4">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${color}20` }}>
-                        <Package className="w-5 h-5" style={{ color }} />
-                      </div>
-                      <div className="font-semibold text-sm truncate mb-1">{d.name}</div>
-                      <div className="text-3xl font-bold tabular-nums" style={{ color }}>{d.count || 0}</div>
-                      <div className="text-xs text-muted-foreground mt-0.5">assets</div>
-                      <div className="mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
-                        <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }}
-                          transition={{ delay: 0.3 + i * 0.06, duration: 0.6, ease: 'easeOut' }}
-                          className="h-full rounded-full" style={{ background: color }} />
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">{pct}% of total</div>
-                    </div>
-                  </motion.div>
-                );
-              })}
+        {/* Dot indicators — only show when scrollable */}
+        {needsScroll && (
+          <div className="flex items-center gap-2">
+            {/* Prev button */}
+            <button
+              onClick={() => scrollToPage(Math.max(0, activeIndex - 1))}
+              disabled={activeIndex === 0}
+              className="w-7 h-7 rounded-full flex items-center justify-center border transition-all"
+              style={{
+                borderColor: activeIndex === 0 ? 'rgba(128,128,128,0.2)' : accentColor,
+                color: activeIndex === 0 ? 'rgba(128,128,128,0.4)' : accentColor,
+                opacity: activeIndex === 0 ? 0.4 : 1,
+              }}
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+
+            {/* Dot pills */}
+            <div className="flex items-center gap-1.5">
+              {Array.from({ length: pageCount }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => scrollToPage(i)}
+                  style={{
+                    width: i === activeIndex ? 24 : 8,
+                    height: 8,
+                    borderRadius: 4,
+                    background: i === activeIndex ? accentColor : 'rgba(128,128,128,0.25)',
+                    transition: 'all 0.25s ease',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                  }}
+                />
+              ))}
             </div>
-          </div>
-        ) : (
-          <div className={`grid ${gridCols} gap-4`}>
-            {data.map((d, i) => {
-              const color = COLORS[i % COLORS.length];
-              const pct = total ? Math.round((d.count / total) * 100) : 0;
-              return (
-                <motion.div key={i}
-                  initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-                  onClick={() => navigate('/assets')}
-                  whileHover={{ y: -4, boxShadow: `0 8px 30px ${color}30` }}
-                  className="rounded-2xl border border-border cursor-pointer overflow-hidden hover:border-primary/40"
-                  style={{ background: 'var(--card)' }}>
-                  <div className="h-1.5 w-full" style={{ background: color }} />
-                  <div className="p-4">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${color}20` }}>
-                      <Package className="w-5 h-5" style={{ color }} />
-                    </div>
-                    <div className="font-semibold text-sm truncate mb-1">{d.name}</div>
-                    <div className="text-3xl font-bold tabular-nums" style={{ color }}>{d.count || 0}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">assets</div>
-                    <div className="mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }}
-                        transition={{ delay: 0.3 + i * 0.06, duration: 0.6, ease: 'easeOut' }}
-                        className="h-full rounded-full" style={{ background: color }} />
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">{pct}% of total</div>
-                  </div>
-                </motion.div>
-              );
-            })}
+
+            {/* Next button */}
+            <button
+              onClick={() => scrollToPage(Math.min(pageCount - 1, activeIndex + 1))}
+              disabled={activeIndex === pageCount - 1}
+              className="w-7 h-7 rounded-full flex items-center justify-center border transition-all"
+              style={{
+                borderColor: activeIndex === pageCount - 1 ? 'rgba(128,128,128,0.2)' : accentColor,
+                color: activeIndex === pageCount - 1 ? 'rgba(128,128,128,0.4)' : accentColor,
+                opacity: activeIndex === pageCount - 1 ? 0.4 : 1,
+              }}
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
           </div>
         )}
-      </motion.div>
-    </>
+      </div>
+
+      {/* Cards */}
+      {needsScroll ? (
+        <div className="overflow-hidden">
+          <div
+            ref={scrollRef}
+            className="flex gap-4"
+            style={{ overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            <style>{`.asset-scroll-hide::-webkit-scrollbar { display: none; }`}</style>
+            {data.map((d, i) => <CardItem key={i} d={d} i={i} />)}
+          </div>
+        </div>
+      ) : (
+        <div className={`grid ${gridCols} gap-4`}>
+          {data.map((d, i) => <CardItem key={i} d={d} i={i} />)}
+        </div>
+      )}
+
+      {/* Bottom accent progress bar showing current position */}
+      {needsScroll && (
+        <div className="mt-4 h-0.5 rounded-full bg-muted overflow-hidden">
+          <div
+            style={{
+              height: '100%',
+              borderRadius: 9999,
+              background: accentColor,
+              width: `${((activeIndex + 1) / pageCount) * 100}%`,
+              transition: 'width 0.3s ease',
+            }}
+          />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -866,51 +894,56 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchAll() {
       try {
-        const [statsRes, transfersRes, employeesRes, subsRes, settingsRes] = await Promise.all([
-          dashboardAPI.getStats(),
-          transfersAPI.getAll().catch((e) => { console.error("Transfers fetch error:", e); return { data: [] }; }),
-          employeesAPI.getAll().catch((e) => { console.error("Employees fetch error:", e); return { data: [] }; }),
-          subscriptionsAPI.getAll().catch((e) => { console.error("Subs fetch error:", e); return { data: [] }; }),
-          settingsAPI.getAppSettings().catch((e) => { console.error("Settings fetch error:", e); return { data: {} }; }),
+        // Step 1: Load stats + settings first — small payloads, shows page fast
+        const [statsRes, settingsRes] = await Promise.all([
+          cachedAPI('dashboard-stats', () => dashboardAPI.getStats()),
+          cachedAPI('app-settings', () => settingsAPI.getAppSettings()),
         ]);
-        // Extract settings FIRST before using them
+
         const appSettings = settingsRes.data || {};
-        
-        setStats(statsRes.data);
-        setTransfers((transfersRes.data || []).slice(0, appSettings.recentTransfersCount || 5));
-        const emps = (employeesRes.data || [])
-          .map(e => ({ ...e, assetCount: e.assetCount || e._count?.assets || 0 }))
-          .filter(e => e.assetCount > 0)
-          .sort((a, b) => b.assetCount - a.assetCount)
-          .slice(0, appSettings.topEmployeesCount || 5);
-        setEmployeeAssets(emps);
-        setSubs(subsRes.data || []);
-        
-        // Settings already extracted above
         const chosenCurrency = appSettings.dashboardCurrency || 'USD';
+        const transfersLimit = appSettings.recentTransfersCount || 5;
+        const employeesLimit = appSettings.topEmployeesCount || 5;
+
+        setStats(statsRes.data);
         setDisplayCurrency(chosenCurrency);
         setShowSubscriptionCosts(appSettings.showSubscriptionCosts !== false);
         setShowDbStorage(appSettings.showDbStorage !== false);
         setExpiryWarningDays(appSettings.expiryWarningDays || 30);
         setRefreshInterval(appSettings.refreshInterval || 0);
-        setTopEmployeesCount(appSettings.topEmployeesCount || 5);
-        setRecentTransfersCount(appSettings.recentTransfersCount || 5);
+        setTopEmployeesCount(employeesLimit);
+        setRecentTransfersCount(transfersLimit);
         setWelcomeMessage(appSettings.welcomeMessage || '');
         setDefaultAssetFilter(appSettings.defaultAssetFilter || 'all');
 
-        // Fetch exchange rate if not USD
+        // Show page immediately — don't wait for secondary data
+        setLoading(false);
+
+        // Step 2: Load secondary data in background (non-blocking)
+        const [transfersRes, employeesRes, subsRes] = await Promise.all([
+          cachedAPI('transfers', () => transfersAPI.getAll()).catch(() => ({ data: [] })),
+          cachedAPI('employees', () => employeesAPI.getAll()).catch(() => ({ data: [] })),
+          cachedAPI('subscriptions', () => subscriptionsAPI.getAll()).catch(() => ({ data: [] })),
+        ]);
+
+        setTransfers((transfersRes.data || []).slice(0, transfersLimit));
+        const emps = (employeesRes.data || [])
+          .map(e => ({ ...e, assetCount: e.assetCount || e._count?.assets || 0 }))
+          .filter(e => e.assetCount > 0)
+          .sort((a, b) => b.assetCount - a.assetCount)
+          .slice(0, employeesLimit);
+        setEmployeeAssets(emps);
+        setSubs(subsRes.data || []);
+
+        // Step 3: Exchange rate — fire and forget, never blocks UI
         if (chosenCurrency !== 'USD') {
-          try {
-            const rateRes = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-            const rateData = await rateRes.json();
-            setExchangeRate(rateData.rates?.[chosenCurrency] || 1);
-          } catch { setExchangeRate(1); }
-        } else {
-          setExchangeRate(1);
+          fetch('https://api.exchangerate-api.com/v4/latest/USD')
+            .then(r => r.json())
+            .then(d => setExchangeRate(d.rates?.[chosenCurrency] || 1))
+            .catch(() => setExchangeRate(1));
         }
       } catch (err) {
         console.error(err);
-      } finally {
         setLoading(false);
       }
     }
@@ -956,7 +989,7 @@ export default function DashboardPage() {
       )}
 
       {/* Assignment Ring */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.22 }}
         className="rounded-2xl border bg-card p-6">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -969,7 +1002,7 @@ export default function DashboardPage() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}
           className="rounded-2xl border bg-card p-6">
           <div className="flex items-center gap-2 mb-6">
             <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -983,7 +1016,7 @@ export default function DashboardPage() {
           }
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
           className="rounded-2xl border bg-card p-6">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -1000,7 +1033,7 @@ export default function DashboardPage() {
 
       {/* Bottom row - transfers + employees */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
           className="rounded-2xl border bg-card p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -1020,7 +1053,7 @@ export default function DashboardPage() {
           }
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
           className="rounded-2xl border bg-card p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">

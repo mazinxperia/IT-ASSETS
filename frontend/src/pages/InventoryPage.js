@@ -39,6 +39,7 @@ import {
   AlertDialogTitle,
 } from '../components/ui/alert-dialog';
 import { assetsAPI, assetTypesAPI, inventoryAPI } from '../services/api';
+import { cachedAPI, invalidateCache } from '../services/apiCache';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 
@@ -69,8 +70,8 @@ export default function InventoryPage() {
   async function fetchData() {
     try {
       const [inventoryRes, typesRes] = await Promise.all([
-        assetsAPI.getInventory(),
-        assetTypesAPI.getAll(),
+        cachedAPI('inventory', () => assetsAPI.getInventory()),
+        cachedAPI('asset-types', () => assetTypesAPI.getAll()),
       ]);
       setInventory(inventoryRes.data);
       setAssetTypes(typesRes.data);
@@ -125,6 +126,7 @@ export default function InventoryPage() {
     if (!deleteDialog.asset) return;
     try {
       await assetsAPI.delete(deleteDialog.asset.id);
+      invalidateCache(['inventory', 'assets', 'dashboard-stats']);
       setInventory(prev => prev.filter(a => a.id !== deleteDialog.asset.id));
       toast.success('Asset deleted successfully');
     } catch (error) {
@@ -214,7 +216,7 @@ export default function InventoryPage() {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.25, ease: 'easeInOut' }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
                     style={{ overflow: 'hidden' }}
                   >
                     <Table style={{ tableLayout: 'fixed', width: '100%' }}>
