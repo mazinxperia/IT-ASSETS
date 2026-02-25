@@ -34,8 +34,8 @@ It installs:
 
 3. Run:
 
-chmod +x install.command
-./install.command
+chmod +x macos_installer.command
+./macos_installer.command
 
 ------------------------------------------------------------
 
