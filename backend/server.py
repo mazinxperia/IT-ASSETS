@@ -1514,16 +1514,20 @@ async def export_assets(data: ExportRequest, user: dict = Depends(get_current_us
     writer = csv.writer(output)
     writer.writerow(headers)
     
+    # Bulk fetch all employees for export in one query
+    export_emp_ids = list({ObjectId(a["assignedEmployeeId"]) for a in assets if a.get("assignedEmployeeId")})
+    export_emps = await employees_collection.find({"_id": {"$in": export_emp_ids}}).to_list(1000)
+    export_emp_map = {str(e["_id"]): e for e in export_emps}
+
     for asset in assets:
         asset_type = type_map.get(asset.get("assetTypeId"), {})
         asset_type_name = asset_type.get("name", "Unknown")
-        
-        # Get assigned employee name
+
         assigned_to = ""
         if asset.get("assignedEmployeeId"):
-            emp = await employees_collection.find_one({"_id": ObjectId(asset["assignedEmployeeId"])})
+            emp = export_emp_map.get(asset["assignedEmployeeId"])
             assigned_to = emp.get("name", "") if emp else ""
-        
+
         asset_status = "Assigned" if asset.get("assignedEmployeeId") else "In Inventory"
         
         row = [asset.get("assetTag", ""), asset_type_name, asset_status, assigned_to]
@@ -1813,23 +1817,28 @@ async def get_assets(inventoryOnly: bool = False, user: dict = Depends(get_curre
     query = {}
     if inventoryOnly:
         query["assignedEmployeeId"] = {"$in": [None, ""]}
-    
+
     assets = await assets_collection.find(query).to_list(10000)
+
+    # Collect all unique IDs first
+    asset_type_ids = list({ObjectId(a["assetTypeId"]) for a in assets if a.get("assetTypeId")})
+    employee_ids = list({ObjectId(a["assignedEmployeeId"]) for a in assets if a.get("assignedEmployeeId")})
+
+    # Fetch all related docs in just 2 bulk queries instead of one per asset
+    asset_types_list = await asset_types_collection.find({"_id": {"$in": asset_type_ids}}).to_list(1000)
+    employees_list = await employees_collection.find({"_id": {"$in": employee_ids}}).to_list(1000)
+
+    # Build fast lookup maps
+    asset_types_map = {str(at["_id"]): serialize_doc(at) for at in asset_types_list}
+    employees_map = {str(e["_id"]): serialize_doc(e) for e in employees_list}
+
     result = []
-    
     for asset in assets:
         asset_dict = serialize_doc(asset)
-        
-        if asset.get("assetTypeId"):
-            asset_type = await asset_types_collection.find_one({"_id": ObjectId(asset["assetTypeId"])})
-            asset_dict["assetType"] = serialize_doc(asset_type) if asset_type else None
-        
-        if asset.get("assignedEmployeeId"):
-            employee = await employees_collection.find_one({"_id": ObjectId(asset["assignedEmployeeId"])})
-            asset_dict["assignedEmployee"] = serialize_doc(employee) if employee else None
-        
+        asset_dict["assetType"] = asset_types_map.get(asset_dict.get("assetTypeId"))
+        asset_dict["assignedEmployee"] = employees_map.get(asset_dict.get("assignedEmployeeId"))
         result.append(asset_dict)
-    
+
     return result
 
 @app.get("/api/assets/{asset_id}")
