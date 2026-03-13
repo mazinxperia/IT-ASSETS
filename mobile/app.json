@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "AssetFlow",
+    "slug": "assetflow",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo.png",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.assetflow.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo.png",
+        "backgroundColor": "#0a0a0f"
+      },
+      "package": "com.assetflow.mobile"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-asset",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ],
+    "sdkVersion": "52.0.0",
+    "newArchEnabled": false,
+    "extra": {
+      "eas": {
+        "projectId": "a4d73455-045f-47a8-8446-5b67454049e5"
+      }
+    },
+    "owner": "mazinxperia"
+  }
+}
