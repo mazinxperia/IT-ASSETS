@@ -28,6 +28,11 @@ AssetFlow is built for internal IT departments, growing companies, and organizat
 **Database**
 - MongoDB (Atlas compatible)
 
+**Mobile**
+- React Native (Expo)
+- Zustand
+- React Navigation v6
+
 ---
 
 # Core Modules
@@ -261,6 +266,132 @@ The login interface establishes a modern SaaS-grade experience from the first in
 
 ---
 
+# 📱 Mobile App
+
+AssetFlow includes a native Android mobile companion app built with **React Native (Expo)**. It connects directly to the same FastAPI backend that powers the web dashboard — no separate backend required.
+
+The mobile app is distributed as a standalone APK for internal use. It is not published to the Play Store.
+
+---
+
+## Mobile Tech Stack
+
+| Technology | Purpose |
+|---|---|
+| React Native 0.76 | Core mobile framework |
+| Expo SDK 52 | Build platform and native modules |
+| React Navigation v6 | Screen navigation |
+| React Native Reanimated 3 | 60fps GPU-accelerated animations |
+| Zustand | Global state management |
+| AsyncStorage | Local data persistence |
+| Axios | HTTP client with interceptors |
+| FlashList | High-performance scrollable lists |
+| NetInfo | Real-time network monitoring |
+| expo-haptics | Haptic feedback on interactions |
+
+---
+
+## How It Connects to the Backend
+
+The mobile app is a **pure client** — it has no database or server of its own. During the onboarding setup, the user enters the backend URL (e.g. `http://192.168.1.x:8001` on a local network, or a deployed URL like `https://your-app.onrender.com`).
+
+From that point, every API call goes directly to the FastAPI backend using the same REST endpoints as the web frontend. Authentication uses the same JWT token system — the user logs in with their AssetFlow credentials and the token is stored locally.
+
+The app checks `GET /health` on the backend every 30 seconds to monitor connectivity. When the backend goes offline, the app automatically switches to offline mode — blocking write operations while keeping cached data readable.
+
+```
+Mobile App (React Native)
+        |
+        | HTTP / HTTPS
+        v
+FastAPI Backend (IT-ASSETS)
+        |
+        v
+MongoDB Database
+```
+
+---
+
+## Mobile Features
+
+### Onboarding
+A 6-scene animated setup flow on first launch. The ConnectScene features a cinematic dark forest SVG animation that runs at 60fps. When the backend connects successfully, the forest transitions from dead (dark teal) to alive (green) — signaling the app is live. Subsequent scenes let the user pick their theme and accent color.
+
+### Dashboard
+Live stat cards with animated count-up numbers. Asset type breakdown and assignment status summary. Pull-to-refresh on all data.
+
+### Asset Management
+Full create, view, edit, and delete support. Search and filter. Status badges. Role-gated write access.
+
+### Employee Management
+Full CRUD with avatar initials. Custom field support matching the web platform's dynamic employee schema.
+
+### Subscription Tracking
+View and manage SaaS subscriptions with cost display.
+
+### Inventory
+Filtered view of unassigned assets with direct navigation to asset detail.
+
+### Transfers
+Transfer history with from/to employee, performed by, and date.
+
+### User Management
+View all users with role badges. Super Admin restricted delete.
+
+### Offline Mode
+When the backend is unreachable, all write operations are blocked and a red toast notification appears. Cached list data remains readable. The ReconnectBubble panel appears to let the user re-enter or retry the backend URL.
+
+---
+
+## Mobile Navigation Structure
+
+```
+App Launch
+  │
+  ├─ First run → Onboarding (6 scenes)
+  ├─ Not logged in → Login
+  └─ Logged in → Main App
+        ├─ Dashboard
+        ├─ Assets
+        │   ├─ Hub → Asset List → Asset Detail
+        │   ├─ Employee List → Employee Detail
+        │   ├─ Subscription List → Subscription Detail
+        │   ├─ Inventory
+        │   ├─ Transfers
+        │   ├─ Asset Types
+        │   └─ Employee Fields
+        ├─ Users
+        └─ Account & Settings
+```
+
+The bottom navigation bar is a floating pill-style tab bar with spring animations. All four main tabs render simultaneously with parallax slide transitions — no remounting, no flicker.
+
+---
+
+## Mobile Role-Based Access
+
+| Feature | SUPER_ADMIN | ADMIN | USER |
+|---|---|---|---|
+| View all screens | ✅ | ✅ | ✅ |
+| Add / Edit assets, employees, subscriptions | ✅ | ✅ | ❌ |
+| Delete records | ✅ | ✅ | ❌ |
+| Manage asset types / employee fields | ✅ | ✅ | ❌ |
+| Delete users | ✅ | ❌ | ❌ |
+
+---
+
+## Building the Mobile APK
+
+```bash
+cd mobile
+npm install
+eas build -p android --profile preview
+```
+
+Requires EAS CLI (`npm install -g eas-cli`) and an Expo account linked to the project.
+
+---
+
 # Security & Access Control
 
 Role-Based Access Model:
@@ -313,4 +444,4 @@ Additional safeguards:
 
 ---
 
-AssetFlow centralizes asset visibility, improves operational control, and provides a structured foundation for scalable IT resource management.
+AssetFlow centralizes asset visibility, improves operational control, and provides a structured foundation for scalable IT resource management — accessible from both web and mobile.
