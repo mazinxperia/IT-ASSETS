@@ -781,6 +781,11 @@ async def startup_event():
     await users_collection.create_index("email", unique=True)
     await employees_collection.create_index("employeeId", unique=True)
     await assets_collection.create_index("assetTag", unique=True)
+    await assets_collection.create_index("assignedEmployeeId")
+    await assets_collection.create_index("assetTypeId")
+    await transfers_collection.create_index("assetId")
+    await transfers_collection.create_index("employeeId")
+    await employees_collection.create_index("name")
     await asset_types_collection.create_index("name", unique=True)
     
     # Create default super admin if not exists
@@ -849,6 +854,10 @@ async def startup_event():
     print("Database initialized")
 
 # ============== AUTH ENDPOINTS ==============
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
 
 @app.post("/api/auth/login")
 async def login(data: LoginRequest):
